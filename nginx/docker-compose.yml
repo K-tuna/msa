@@ -1,0 +1,17 @@
+version: '3.8'
+services:
+  nginx:
+    image: nginx:alpine  # 공식 Nginx 이미지 사용
+    container_name: nginx-app  # 컨테이너 이름을 nginx-app으로 설정
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf  # 설정 파일 마운트
+    networks:
+      - msa-network
+
+networks:
+  msa-network:
+    name: msa-network
+    driver: bridge
