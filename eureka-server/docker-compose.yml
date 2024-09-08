@@ -1,13 +1,13 @@
 services:
   eureka-server:
-    build: .
-    container_name: eureka-server-app  # 컨테이너 이름을 eureka-server-app으로 설정
+    build: .  # 현재 디렉토리에서 빌드
+    image: eureka-server:latest
+    container_name: eureka-server-app
     ports:
       - "8761:8761"
     networks:
-      - msa-network
+      msa-network:
 
 networks:
   msa-network:
-    name: msa-network
-    driver: bridge
+    external: true  # 외부에 이미 정의된 msa-network를 사용

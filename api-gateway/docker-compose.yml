@@ -1,0 +1,13 @@
+services:
+  api-gateway:
+    build: .
+    image: api-gateway:latest
+    container_name: api-gateway-app
+    ports:
+      - "8000:8000"
+    networks:
+      - msa-network
+
+networks:
+  msa-network:
+    external: true  # 외부에 이미 정의된 msa-network를 사용

@@ -1,0 +1,34 @@
+services:
+  mysql-user:
+    image: mysql:8.0
+    container_name: mysql-user
+    environment:
+      MYSQL_ROOT_PASSWORD: ssafy  # root 비밀번호를 ssafy로 설정
+      MYSQL_DATABASE: userdb      # 사용할 데이터베이스 이름
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-user-data:/var/lib/mysql  # mysql-user의 데이터 영속성 볼륨
+    networks:
+      - msa-network
+
+  mysql-order:
+    image: mysql:8.0
+    container_name: mysql-order
+    environment:
+      MYSQL_ROOT_PASSWORD: ssafy  # root 비밀번호를 ssafy로 설정
+      MYSQL_DATABASE: orderdb     # 사용할 데이터베이스 이름
+    ports:
+      - "3308:3306"
+    volumes:
+      - mysql-order-data:/var/lib/mysql  # mysql-order의 데이터 영속성 볼륨
+    networks:
+      - msa-network
+
+volumes:
+  mysql-user-data:  # mysql-user의 영속성 볼륨
+  mysql-order-data: # mysql-order의 영속성 볼륨
+
+networks:
+  msa-network:
+    external: true  # 외부에 이미 정의된 msa-network를 사용

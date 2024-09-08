@@ -1,0 +1,13 @@
+services:
+  user-service:
+    build: .  # 현재 디렉토리에서 빌드
+    image: user-service:latest
+    container_name: user-service-app
+    ports:
+      - "8081:8081"
+    networks:
+      - msa-network
+
+networks:
+  msa-network:
+    external: true  # 외부에 이미 정의된 msa-network를 사용
