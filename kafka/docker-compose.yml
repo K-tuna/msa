@@ -1,37 +1,96 @@
 services:
-  zookeeper:
-    image: confluentinc/cp-zookeeper:latest
-    container_name: zookeeper
-    ports:
-      - "2181:2181"
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    volumes:
-      - zookeeper_data:/var/lib/zookeeper  # Zookeeper 데이터 영속성
-    networks:
-      - msa-network  # 네트워크 설정
-
-  kafka:
+  # 첫 번째 Kafka 브로커
+  kafka-broker-1:
     image: confluentinc/cp-kafka:latest
-    container_name: kafka
+    container_name: kafka-broker-1
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker-1:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_KRAFT_MODE: 'true'
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-broker-1:9093,2@kafka-broker-2:9094,3@kafka-broker-3:9095
+      KAFKA_LISTENER_NAME_CONTROLLER_LISTENER: PLAINTEXT://0.0.0.0:9093
+      KAFKA_CONFLUENT_SUPPORT_METRICS_ENABLE: 'false'
     ports:
       - "9092:9092"
-    environment:
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-      KAFKA_BROKER_ID: 1
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      - "9093:9093"
     volumes:
-      - kafka_data:/var/lib/kafka/data  # Kafka 데이터 영속성
+      - ./data/kafka-broker-1:/var/lib/kafka/data
     networks:
-      - msa-network  # 네트워크 설정
+      - msa-network
 
-volumes:
-  zookeeper_data:
-  kafka_data:
+  # 두 번째 Kafka 브로커
+  kafka-broker-2:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka-broker-2
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9094
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker-2:9094
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_KRAFT_MODE: 'true'
+      KAFKA_NODE_ID: 2
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-broker-1:9093,2@kafka-broker-2:9094,3@kafka-broker-3:9095
+      KAFKA_LISTENER_NAME_CONTROLLER_LISTENER: PLAINTEXT://0.0.0.0:9094
+      KAFKA_CONFLUENT_SUPPORT_METRICS_ENABLE: 'false'
+    ports:
+      - "9094:9094"
+    volumes:
+      - ./data/kafka-broker-2:/var/lib/kafka/data
+    networks:
+      - msa-network
+
+  # 세 번째 Kafka 브로커
+  kafka-broker-3:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka-broker-3
+    environment:
+      KAFKA_BROKER_ID: 3
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9095
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker-3:9095
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_KRAFT_MODE: 'true'
+      KAFKA_NODE_ID: 3
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-broker-1:9093,2@kafka-broker-2:9094,3@kafka-broker-3:9095
+      KAFKA_LISTENER_NAME_CONTROLLER_LISTENER: PLAINTEXT://0.0.0.0:9095
+      KAFKA_CONFLUENT_SUPPORT_METRICS_ENABLE: 'false'
+    ports:
+      - "9095:9095"
+    volumes:
+      - ./data/kafka-broker-3:/var/lib/kafka/data
+    networks:
+      - msa-network
+
+  # Kafka UI
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    environment:
+      KAFKA_CLUSTERS_0_NAME: kafka-cluster
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-broker-1:9092,kafka-broker-2:9094,kafka-broker-3:9095
+    ports:
+      - "8989:8080"  # 8989 포트로 UI 포트 변경
+    depends_on:
+      - kafka-broker-1
+      - kafka-broker-2
+      - kafka-broker-3
+    networks:
+      - msa-network
 
 networks:
   msa-network:
-    name: msa-network
-    driver: bridge
+    external: true
