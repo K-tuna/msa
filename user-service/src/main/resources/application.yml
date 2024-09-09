@@ -19,13 +19,27 @@ spring:
         use_sql_comments: true  # SQL에 주석 추가
         default_batch_fetch_size: 1000  # 성능 최적화
         dialect: org.hibernate.dialect.MySQL8Dialect  # MySQL에 맞는 방언 설정
-
   h2:
     console:
       enabled: true
       path: /h2-console
       settings:
         web-allow-others: true
+  kafka:
+    bootstrap-servers:
+      - kafka-broker-1:9092
+      - kafka-broker-2:9094
+      - kafka-broker-3:9095
+    consumer:
+      group-id: my-consumer-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    listener:
+      concurrency: 3  # 동시에 여러 스레드에서 메시지를 처리할 수 있도록 설정
 
 eureka:
   client:
